@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ClassVoice{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='title_logo.png')}}">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── LIGHT MODE (default) ── */
+        :root, [data-theme="light"] {
+            --bg:        #ffffff;
+            --surface:   #fff5f5;
+            --surface2:  #ffe8e8;
+            --border:    #fcc9c9;
+            --border2:   #f9a8a8;
+            --text:      #1a0505;
+            --text2:     #4a1515;
+            --muted:     #9e5a5a;
+            --accent:    #d32f2f;
+            --accent2:   #b71c1c;
+            --accent-bg: rgba(211,47,47,0.08);
+            --nav-bg:    rgba(255,255,255,0.93);
+            --shadow:    0 2px 16px rgba(211,47,47,0.08);
+            --radius:    10px;
+
+            /* tag colors stay readable in both modes */
+            --tag-teaching-bg:    rgba(46,125,50,0.1);
+            --tag-teaching-fg:    #2e7d32;
+            --tag-teaching-bd:    rgba(46,125,50,0.25);
+            --tag-pacing-bg:      rgba(230,81,0,0.1);
+            --tag-pacing-fg:      #e65100;
+            --tag-pacing-bd:      rgba(230,81,0,0.25);
+            --tag-materials-bg:   rgba(21,101,192,0.1);
+            --tag-materials-fg:   #1565c0;
+            --tag-materials-bd:   rgba(21,101,192,0.25);
+            --tag-assessment-bg:  rgba(123,31,162,0.1);
+            --tag-assessment-fg:  #7b1fa2;
+            --tag-assessment-bd:  rgba(123,31,162,0.25);
+            --tag-env-bg:         rgba(211,47,47,0.1);
+            --tag-env-fg:         #d32f2f;
+            --tag-env-bd:         rgba(211,47,47,0.25);
+            --stars:              #e53935;
+            --stars-empty:        #fcc9c9;
+        }
+
+        /* ── DARK MODE ── */
+        [data-theme="dark"] {
+            --bg:        #0f0404;
+            --surface:   #1a0808;
+            --surface2:  #250d0d;
+            --border:    #3d1515;
+            --border2:   #5a1f1f;
+            --text:      #fff0f0;
+            --text2:     #ffd0d0;
+            --muted:     #a06060;
+            --accent:    #ef5350;
+            --accent2:   #e53935;
+            --accent-bg: rgba(239,83,80,0.12);
+            --nav-bg:    rgba(15,4,4,0.93);
+            --shadow:    0 2px 16px rgba(239,83,80,0.1);
+            --radius:    10px;
+
+            --tag-teaching-bg:    rgba(76,175,80,0.12);
+            --tag-teaching-fg:    #81c784;
+            --tag-teaching-bd:    rgba(76,175,80,0.25);
+            --tag-pacing-bg:      rgba(255,152,0,0.12);
+            --tag-pacing-fg:      #ffb74d;
+            --tag-pacing-bd:      rgba(255,152,0,0.25);
+            --tag-materials-bg:   rgba(66,165,245,0.12);
+            --tag-materials-fg:   #64b5f6;
+            --tag-materials-bd:   rgba(66,165,245,0.25);
+            --tag-assessment-bg:  rgba(206,147,216,0.12);
+            --tag-assessment-fg:  #ce93d8;
+            --tag-assessment-bd:  rgba(206,147,216,0.25);
+            --tag-env-bg:         rgba(239,83,80,0.12);
+            --tag-env-fg:         #ef9a9a;
+            --tag-env-bd:         rgba(239,83,80,0.25);
+            --stars:              #ef5350;
+            --stars-empty:        #3d1515;
+        }
+
+        /* ── THEME TRANSITION ── */
+        body, nav, .card, input, textarea, select, button {
+            transition: background 0.25s, border-color 0.25s, color 0.25s;
+        }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(ellipse 70% 40% at 5% 0%, rgba(211,47,47,0.05) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 95% 100%, rgba(211,47,47,0.04) 0%, transparent 60%);
+        }
+
+        [data-theme="dark"] body {
+            background-image:
+                radial-gradient(ellipse 70% 40% at 5% 0%, rgba(239,83,80,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 95% 100%, rgba(239,83,80,0.05) 0%, transparent 60%);
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: sticky; top: 0; z-index: 200;
+            background: var(--nav-bg);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 62px;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-logo {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-wordmark {
+            font-family: 'Instrument Serif', serif;
+            font-size: 1.3rem;
+            color: var(--text);
+            letter-spacing: 0.01em;
+        }
+        .nav-wordmark em { font-style: italic; color: var(--accent); }
+
+        .nav-right { display: flex; align-items: center; gap: 2px; }
+
+        .nav-links { display: flex; align-items: center; gap: 2px; }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            transition: color 0.18s, background 0.18s;
+        }
+        .nav-links a:hover { color: var(--text); background: var(--surface2); }
+        .nav-links a.active { color: var(--accent); background: var(--accent-bg); }
+
+        .nav-links .nav-cta {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            margin-left: 0.5rem;
+        }
+        .nav-links .nav-cta:hover { background: var(--accent2); color: #fff; }
+
+        /* ── THEME TOGGLE BUTTON ── */
+        .theme-toggle {
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 0.75rem;
+            transition: background 0.18s, border-color 0.18s, transform 0.15s;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { background: var(--accent-bg); border-color: var(--accent); transform: rotate(15deg); }
+
+        /* Show/hide icons by theme */
+        .icon-moon { display: inline; }
+        .icon-sun  { display: none; }
+        [data-theme="dark"] .icon-moon { display: none; }
+        [data-theme="dark"] .icon-sun  { display: inline; }
+
+        /* ── PAGE SHELL ── */
+        main { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+        /* ── SHARED UTILITIES ── */
+        .page-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.6rem;
+        }
+
+        .page-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 400;
+            line-height: 1.1;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-sub {
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 400;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .tag {
+            display: inline-block;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.65rem;
+            border-radius: 100px;
+            background: var(--surface2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+
+        .tag.teaching   { background: var(--tag-teaching-bg);   color: var(--tag-teaching-fg);   border-color: var(--tag-teaching-bd); }
+        .tag.pacing     { background: var(--tag-pacing-bg);     color: var(--tag-pacing-fg);     border-color: var(--tag-pacing-bd); }
+        .tag.materials  { background: var(--tag-materials-bg);  color: var(--tag-materials-fg);  border-color: var(--tag-materials-bd); }
+        .tag.assessment { background: var(--tag-assessment-bg); color: var(--tag-assessment-fg); border-color: var(--tag-assessment-bd); }
+        .tag.environment{ background: var(--tag-env-bg);        color: var(--tag-env-fg);        border-color: var(--tag-env-bd); }
+
+        .stars { color: var(--stars); letter-spacing: -0.05em; }
+        .stars .empty { color: var(--stars-empty); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/" class="nav-logo">
+        <img src="{{ url_for('static', filename='title_logo.svg') }}" alt="logo" height="36" class="logo-img">
+        <span class="nav-wordmark">Class<em>Voice</em></span>
+    </a>
+
+    <div class="nav-right">
+        <div class="nav-links">
+            <a href="/feedback"  {% if request.endpoint == 'view_feedback'  %}class="active"{% endif %}>Feedback</a>
+            <a href="/analytics" {% if request.endpoint == 'analytics'      %}class="active"{% endif %}>Analytics</a>
+            <a href="/" class="nav-cta {% if request.endpoint == 'index' %}active{% endif %}">+ Submit</a>
+        </div>
+
+        <!-- Theme toggle -->
+        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+            <span class="icon-moon">🌙</span>
+            <span class="icon-sun">☀️</span>
+        </button>
+    </div>
+</nav>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+    // ── Theme persistence via localStorage ──
+    (function () {
+        const html   = document.documentElement;
+        const btn    = document.getElementById('themeToggle');
+        const stored = localStorage.getItem('cv-theme');
+
+        // Apply saved preference immediately (before paint)
+        if (stored === 'dark') html.setAttribute('data-theme', 'dark');
+
+        btn.addEventListener('click', function () {
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const next   = isDark ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('cv-theme', next);
+        });
+    })();
+</script>
+</body>
+</html>

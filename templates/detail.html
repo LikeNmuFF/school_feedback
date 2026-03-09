@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Feedback #{{ item.id }} — ClassVoice{% endblock %}
+
+{% block extra_styles %}
+.back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: color 0.15s;
+    animation: fadeUp 0.3s ease both;
+}
+.back-link:hover { color: var(--text); }
+
+.detail-card {
+    padding: 2.5rem;
+    animation: fadeUp 0.4s 0.05s ease both;
+}
+
+.detail-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.detail-subject {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.8rem;
+    line-height: 1.2;
+    color: var(--text);
+}
+
+.detail-id {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.detail-meta {
+    display: flex; gap: 0.75rem; align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.detail-message {
+    font-size: 1rem;
+    line-height: 1.85;
+    color: var(--text2);
+    white-space: pre-wrap;
+    margin-bottom: 2rem;
+}
+
+.detail-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.detail-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+}
+
+/* Delete form */
+.delete-form { display: inline; }
+.delete-btn {
+    background: transparent;
+    border: 1px solid rgba(200,68,26,0.3);
+    color: rgba(200,68,26,0.6);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.delete-btn:hover { background: rgba(200,68,26,0.1); border-color: var(--accent2); color: var(--accent2); }
+
+.nav-between {
+    display: flex; gap: 0.5rem; margin-top: 2rem;
+    animation: fadeUp 0.4s 0.1s ease both;
+}
+
+.nav-between a {
+    flex: 1; text-align: center;
+    padding: 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.nav-between a:hover { border-color: var(--accent); color: var(--accent); }
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('view_feedback') }}" class="back-link">← Back to all feedback</a>
+
+<div class="card detail-card">
+    <div class="detail-header">
+        <div class="detail-subject">{{ item.subject }}</div>
+        <span class="detail-id">#{{ item.id }}</span>
+    </div>
+
+    <div class="detail-meta">
+        <span class="stars" style="font-size:1.2rem">
+            {% for i in range(item.rating) %}★{% endfor %}<span class="empty">{% for i in range(5 - item.rating) %}★{% endfor %}</span>
+        </span>
+        <span class="tag {{ item.category }}">{{ item.category }}</span>
+    </div>
+
+    <div class="detail-message">{{ item.message }}</div>
+
+    <div class="detail-footer">
+        <span class="detail-time">{{ item.timestamp }}</span>
+        {% if is_admin %}
+        <form class="delete-form" action="{{ url_for('delete_feedback', fid=item.id) }}" method="POST"
+              onsubmit="return confirm('Delete this feedback? This cannot be undone.')">
+            <button type="submit" class="delete-btn">Delete</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="nav-between">
+    {% if item.id > 1 %}
+    <a href="{{ url_for('feedback_detail', fid=item.id - 1) }}">← Previous</a>
+    {% else %}
+    <span style="flex:1"></span>
+    {% endif %}
+    <a href="{{ url_for('feedback_detail', fid=item.id + 1) }}">Next →</a>
+</div>
+{% endblock %}

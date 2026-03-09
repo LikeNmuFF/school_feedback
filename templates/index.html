@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Submit Feedback — ClassVoice{% endblock %}
+
+{% block extra_styles %}
+.submit-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 3rem;
+    align-items: start;
+}
+
+.form-card { padding: 2rem; animation: fadeUp 0.45s ease both; }
+
+.anon-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--tag-teaching-bg);
+    border: 1px solid var(--tag-teaching-bd);
+    color: var(--tag-teaching-fg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.field { margin-bottom: 1.25rem; }
+
+.field label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.45rem;
+}
+
+.field input,
+.field textarea,
+.field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder { color: var(--muted); }
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(211,47,47,0.12);
+}
+
+.field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+/* Star rating */
+.star-group { display: flex; gap: 4px; flex-direction: row-reverse; }
+.star-group input { display: none; }
+.star-group label {
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--border2);
+    transition: color 0.12s, transform 0.12s;
+    line-height: 1;
+    margin: 0;
+    letter-spacing: 0;
+    text-transform: none;
+    font-family: inherit;
+}
+.star-group label:hover,
+.star-group label:hover ~ label,
+.star-group input:checked ~ label {
+    color: var(--stars);
+    transform: scale(1.15);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.1s;
+    margin-top: 0.5rem;
+}
+.submit-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+.submit-btn:active { transform: translateY(0); }
+
+/* Sidebar info */
+.sidebar { animation: fadeUp 0.45s 0.15s ease both; }
+
+.info-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.info-block-header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.info-item {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+.info-item:last-child { border-bottom: none; }
+.info-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+.error-banner {
+    background: rgba(211,47,47,0.08);
+    border: 1px solid rgba(211,47,47,0.25);
+    color: var(--accent);
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 700px) {
+    .submit-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+}
+{% endblock %}
+
+{% block content %}
+<div style="animation: fadeUp 0.35s ease both; margin-bottom: 2rem;">
+    <div class="page-eyebrow">Anonymous Feedback</div>
+    <h1 class="page-title">What's on your mind?</h1>
+    <p class="page-sub">Your submission is completely anonymous — no login, no tracking.</p>
+</div>
+
+<div class="submit-grid">
+    <div>
+        {% if request.args.get('error') %}
+        <div class="error-banner">⚠ Please select a rating and write a message.</div>
+        {% endif %}
+
+        <div class="card form-card">
+            <div class="anon-pill">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M5 3v2.5L6.5 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                100% Anonymous
+            </div>
+
+            <form action="/submit" method="POST">
+                <div class="form-row">
+                    <div class="field">
+                        <label for="subject">Subject <span style="opacity:.4">(optional)</span></label>
+                        <input type="text" id="subject" name="subject" placeholder="e.g. Homework load">
+                    </div>
+                    <div class="field">
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="general">General</option>
+                            <option value="teaching">Teaching Style</option>
+                            <option value="pacing">Class Pacing</option>
+                            <option value="materials">Materials</option>
+                            <option value="assessment">Assessments</option>
+                            <option value="environment">Environment</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Rating</label>
+                    <div class="star-group">
+                        <input type="radio" id="s5" name="rating" value="5"><label for="s5">★</label>
+                        <input type="radio" id="s4" name="rating" value="4"><label for="s4">★</label>
+                        <input type="radio" id="s3" name="rating" value="3"><label for="s3">★</label>
+                        <input type="radio" id="s2" name="rating" value="2"><label for="s2">★</label>
+                        <input type="radio" id="s1" name="rating" value="1"><label for="s1">★</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="message">Your Feedback</label>
+                    <textarea id="message" name="message" placeholder="Be as specific as you like — what's working, what could improve, what you'd change…"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Anonymously →</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="info-block">
+            <div class="info-block-header">How it works</div>
+            <div class="info-item"><span class="info-icon">✦</span> No account or login needed</div>
+            <div class="info-item"><span class="info-icon">✦</span> Your IP address is never stored</div>
+            <div class="info-item"><span class="info-icon">✦</span> Responses are read by your teacher only</div>
+            <div class="info-item"><span class="info-icon">✦</span> You can submit as many times as you like</div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-block-header">Categories</div>
+            <div class="info-item"><span class="tag teaching">Teaching</span> &nbsp;How the class is taught</div>
+            <div class="info-item"><span class="tag pacing">Pacing</span> &nbsp;Speed & lesson flow</div>
+            <div class="info-item"><span class="tag materials">Materials</span> &nbsp;Slides, readings, resources</div>
+            <div class="info-item"><span class="tag assessment">Assessment</span> &nbsp;Tests, quizzes, grades</div>
+            <div class="info-item"><span class="tag environment">Environment</span> &nbsp;Classroom atmosphere</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

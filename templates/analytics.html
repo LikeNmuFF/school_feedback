@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% block title %}Analytics — ClassVoice{% endblock %}
+
+{% block extra_styles %}
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.a-card {
+    padding: 1.75rem;
+    animation: fadeUp 0.4s ease both;
+}
+
+.a-card.full { grid-column: 1 / -1; }
+
+.a-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+}
+
+/* Big number */
+.big-num {
+    font-family: 'Instrument Serif', serif;
+    font-size: 3.5rem;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.big-sub { font-size: 0.85rem; color: var(--muted); }
+
+/* Rating bars */
+.rating-bars { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.r-row { display: flex; align-items: center; gap: 0.75rem; }
+
+.r-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    width: 18px;
+    flex-shrink: 0;
+}
+
+.r-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.r-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.r-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 24px;
+    text-align: right;
+}
+
+/* Category donut chart (pure CSS) */
+.cat-list { display: flex; flex-direction: column; gap: 0.65rem; }
+
+.cat-row { display: flex; align-items: center; gap: 0.75rem; }
+
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.cat-name {
+    font-size: 0.85rem;
+    color: var(--text);
+    flex: 1;
+    text-transform: capitalize;
+}
+
+.cat-bar-bg {
+    width: 100px;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.cat-bar { height: 100%; border-radius: 3px; }
+
+.cat-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 24px;
+    text-align: right;
+}
+
+/* Trend chart */
+.trend-wrap { position: relative; height: 140px; width: 100%; }
+
+canvas#trendChart { width: 100% !important; height: 100% !important; }
+
+.empty-analytics {
+    text-align: center; padding: 5rem 2rem;
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    color: var(--muted);
+}
+
+@media (max-width: 600px) {
+    .analytics-grid { grid-template-columns: 1fr; }
+    .a-card.full { grid-column: 1; }
+}
+{% endblock %}
+
+{% block content %}
+<div style="animation: fadeUp 0.35s ease both; margin-bottom: 2rem;">
+    <div class="page-eyebrow">Insights</div>
+    <h1 class="page-title">Analytics</h1>
+    <p class="page-sub">A breakdown of all submitted feedback.</p>
+</div>
+
+{% if empty %}
+<div class="empty-analytics">
+    <div style="font-size:2.5rem; margin-bottom:0.75rem">📊</div>
+    <p>No data yet. Submit some feedback first!</p>
+    <a href="/" style="display:inline-block; margin-top:1.25rem; padding:0.65rem 1.5rem; background:var(--accent); color:var(--bg); text-decoration:none; border-radius:8px; font-size:0.85rem; font-weight:700;">Submit Feedback →</a>
+</div>
+
+{% else %}
+
+{% set cat_colors = {'general': '#7a9edf', 'teaching': '#5a9e6f', 'pacing': '#c9952e', 'materials': '#7aabdf', 'assessment': '#c07ad8', 'environment': '#d32f2f'} %}
+{% set max_cat = cat_counts.values() | max %}
+{% set max_rating = rating_dist.values() | max %}
+
+<div class="analytics-grid">
+
+    <!-- Total + avg -->
+    <div class="card a-card" style="animation-delay:0.05s">
+        <div class="a-title">Total Responses</div>
+        <div class="big-num">{{ total }}</div>
+        <div class="big-sub">submissions received</div>
+    </div>
+
+    <div class="card a-card" style="animation-delay:0.1s">
+        <div class="a-title">Average Rating</div>
+        <div class="big-num" style="color:var(--gold)">{{ avg }}</div>
+        <div class="big-sub">out of 5.00</div>
+    </div>
+
+    <!-- Rating distribution -->
+    <div class="card a-card" style="animation-delay:0.15s">
+        <div class="a-title">Rating Distribution</div>
+        <div class="rating-bars">
+            {% for star in [5,4,3,2,1] %}
+            {% set n = rating_dist.get(star, 0) %}
+            <div class="r-row">
+                <span class="r-label">{{ star }}★</span>
+                <div class="r-bar-bg">
+                    <div class="r-bar" style="width: {{ (n / max_rating * 100) if max_rating else 0 }}%"></div>
+                </div>
+                <span class="r-count">{{ n }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Category breakdown -->
+    <div class="card a-card" style="animation-delay:0.2s">
+        <div class="a-title">By Category</div>
+        <div class="cat-list">
+            {% for cat, n in cat_counts.items() | sort(attribute='1', reverse=True) %}
+            <div class="cat-row">
+                <div class="cat-dot" style="background: {{ cat_colors.get(cat, '#7a9edf') }}"></div>
+                <span class="cat-name">{{ cat }}</span>
+                <div class="cat-bar-bg">
+                    <div class="cat-bar" style="width:{{ (n / max_cat * 100) }}%; background: {{ cat_colors.get(cat, '#7a9edf') }}"></div>
+                </div>
+                <span class="cat-count">{{ n }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Trend -->
+    {% if trend_days | length > 1 %}
+    <div class="card a-card full" style="animation-delay:0.25s">
+        <div class="a-title">Submissions — Last 14 Days</div>
+        <div class="trend-wrap">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const days   = {{ trend_days | tojson }};
+        const counts = {{ trend_counts | tojson }};
+        const canvas = document.getElementById('trendChart');
+        const ctx    = canvas.getContext('2d');
+
+        // Set actual pixel size
+        function resize() {
+            canvas.width  = canvas.offsetWidth  * devicePixelRatio;
+            canvas.height = canvas.offsetHeight * devicePixelRatio;
+            ctx.scale(devicePixelRatio, devicePixelRatio);
+            draw();
+        }
+
+        function draw() {
+            const W = canvas.offsetWidth;
+            const H = canvas.offsetHeight;
+            ctx.clearRect(0, 0, W, H);
+
+            const pad = { top: 10, right: 10, bottom: 28, left: 28 };
+            const gW  = W - pad.left - pad.right;
+            const gH  = H - pad.top  - pad.bottom;
+            const max = Math.max(...counts, 1);
+            const n   = days.length;
+
+            const xOf = i => pad.left + (i / (n - 1)) * gW;
+            const yOf = v => pad.top  + gH - (v / max) * gH;
+
+            // Grid lines
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for (let t = 0; t <= 4; t++) {
+                const y = pad.top + (t / 4) * gH;
+                ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + gW, y); ctx.stroke();
+            }
+
+            // Fill area
+            const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + gH);
+            grad.addColorStop(0, 'rgba(211,47,47,0.3)');
+            grad.addColorStop(1, 'rgba(211,47,47,0)');
+            ctx.beginPath();
+            ctx.moveTo(xOf(0), yOf(counts[0]));
+            for (let i = 1; i < n; i++) {
+                const cx = (xOf(i-1) + xOf(i)) / 2;
+                ctx.bezierCurveTo(cx, yOf(counts[i-1]), cx, yOf(counts[i]), xOf(i), yOf(counts[i]));
+            }
+            ctx.lineTo(xOf(n-1), pad.top + gH);
+            ctx.lineTo(xOf(0),   pad.top + gH);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Line
+            ctx.beginPath();
+            ctx.moveTo(xOf(0), yOf(counts[0]));
+            for (let i = 1; i < n; i++) {
+                const cx = (xOf(i-1) + xOf(i)) / 2;
+                ctx.bezierCurveTo(cx, yOf(counts[i-1]), cx, yOf(counts[i]), xOf(i), yOf(counts[i]));
+            }
+            ctx.strokeStyle = '#d32f2f';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Dots
+            for (let i = 0; i < n; i++) {
+                ctx.beginPath();
+                ctx.arc(xOf(i), yOf(counts[i]), 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#d32f2f';
+                ctx.fill();
+                ctx.strokeStyle = '#0a0908';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            // X labels (every other)
+            ctx.fillStyle = 'rgba(122,110,98,0.9)';
+            ctx.font = `${10 * Math.min(1, W / 500)}px "DM Mono", monospace`;
+            ctx.textAlign = 'center';
+            for (let i = 0; i < n; i += Math.ceil(n / 7)) {
+                const d = days[i].slice(5); // MM-DD
+                ctx.fillText(d, xOf(i), H - 6);
+            }
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+    })();
+    </script>
+    {% endif %}
+
+</div>
+{% endif %}
+{% endblock %}
